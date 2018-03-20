@@ -3,6 +3,7 @@ package project1;
 import org.eclipse.jdt.core.dom.ASTNode;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Assign1 {
 	
@@ -11,10 +12,10 @@ public class Assign1 {
 		/** ENTER TARGET DIRECTORY, TARGET TYPE, AND SOURCE DIRECTORY MANUALLY
 		 	Uncomment the following and enter the specified strings: **/
 //		String pathname = "C:\Users\teale\Documents\School\SENG 300\TestCode";  // TEALE				
-//		String pathname = "/Users/ahmed/Downloads/test7";						// AHMED			
+		String pathname = "/Users/ahmed/Downloads/testFiles";						// AHMED			
 //		String [] sources = {"C:\\Users\\teale\\Documents\\eclipse-java-oxygen-2-win32-x86_64\\eclipse\\plugins"};	// TEALE
-//		String [] sources = {"/Users/ahmed/Downloads/jar"};															// AHMED
-//		String targetType = "Time";
+		String [] sources = {"/Users/ahmed/Downloads/jar"};															// AHMED
+//		String targetType = "enum";
 		
 //		String pathname = "<ENTER TARGET DIRECTORY HERE>"; 		
 //		String targetType = "<ENTER TYPE HERE>";		
@@ -23,14 +24,14 @@ public class Assign1 {
 		
 		/** USER INPUT **/
 		UserContact uc = new UserContact();
-		String pathname = uc.getPathname();																// Ask user for directory path
+		//String pathname = uc.getPathname();																// Ask user for directory path
 		
 		// Make sure that the user enters a valid directory 
 		while (!uc.isValidDir(pathname)) {
 			pathname = uc.getPathname();
 		}
 		
-		String [] sources = uc.getJarFiles();															// Ask user for the directory containing their jar files 		
+//		String [] sources = uc.getJarFiles();															// Ask user for the directory containing their jar files 		
 		
 		// Make sure that the user enters a valid directory for sources
 		while (!uc.isValidDir(sources[0])) {
@@ -43,14 +44,21 @@ public class Assign1 {
 		ASTNode cu = builder.makeSyntaxTree(sourceString.toCharArray(),classpath, sources, sourceString); // Build syntax tree from the string file content
 
 		TypeCounter counter = new TypeCounter();
-		String targetType = uc.getTargetType();	
+//		String targetType = uc.getTargetType();	
 											
 		counter = new TypeCounter();
-		int decCount = counter.countDec(cu, targetType);
-		int refCount = counter.countRef(cu, targetType);
+//		ArrayList<String> types2 = counter.countDec(cu, targetType);
+//		int refCount = counter.countRef(cu, targetType);
+		ArrayList<TargetType> types = counter.count(cu);
+		
+//		types.addAll(types2);
 
-		System.out.printf("\nType: %2s\t\tDeclarations found: %1d\tReferences found: %d \n",targetType,decCount,refCount);
-
+//		System.out.printf("\nType: %2s\t\tDeclarations found: %1d\tReferences found: %d \n",targetType,decCount,refCount);
+		
+//		System.out.println("Hakuna = ");
+		for (TargetType s: types) {
+			System.out.printf("\nType: %-25s  Declarations found: %-5d References found: %-2d\n",s.getType(),s.getDec(), s.getRef());
+		}
 
 	}
 }
