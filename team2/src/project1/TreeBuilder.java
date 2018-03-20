@@ -1,5 +1,4 @@
 package project1;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -23,13 +22,18 @@ public class TreeBuilder {
 		File directory = new File(pathname);
 		File[] allFiles = directory.listFiles();
 		
+		if (allFiles == null) return null;
+	
 		
 		for (File f : allFiles) {						
+			if	(f.isDirectory()){				
+				sb.append(filesToString(f.getAbsolutePath()));
+			}			
 			String fileName = f.getName().toLowerCase();
-
+			
 			if (f.isFile() && fileName.endsWith(".java")) {
+				System.out.println(f);
 				BufferedReader reader = null;
-
 				try {
 					reader = new BufferedReader(new FileReader(f));		
 					String aLine;
@@ -54,7 +58,7 @@ public class TreeBuilder {
  **/
 	public ASTNode makeSyntaxTree(char[] sourceCode,String[] classpath, String[] sources, String unitName ) {
 
-		ASTParser parser = ASTParser.newParser(AST.JLS9);
+		ASTParser parser = ASTParser.newParser(AST.JLS8);
 		parser.setSource(sourceCode);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setResolveBindings(true);
