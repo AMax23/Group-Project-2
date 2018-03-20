@@ -32,7 +32,6 @@ public class TreeBuilder {
 			String fileName = f.getName().toLowerCase();
 			
 			if (f.isFile() && fileName.endsWith(".java")) {
-				System.out.println(f);
 				BufferedReader reader = null;
 				try {
 					reader = new BufferedReader(new FileReader(f));		
