@@ -1,5 +1,9 @@
 package project1;
 
+/*
+ * Keeps track of the specific java types within a directory. 
+ * Increments references and declaration counts and returns them 
+ */
 public class TargetType {
 	
 	private String type;

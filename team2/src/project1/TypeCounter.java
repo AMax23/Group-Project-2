@@ -15,12 +15,8 @@ import org.eclipse.jdt.core.dom.PrimitiveType;
 
 public class TypeCounter {
 
-//	private int decCount;
-//	private int refCount;
 
-	//	ArrayList <TargetType> types00 = new ArrayList<TargetType>();
-	//	ArrayList <String> types2 = new ArrayList<String>();
-	//	
+	// Contains objects of type TargetType which keeps track of all the references and declarations count.
 	ArrayList<TargetType> types = new ArrayList<TargetType>();
 
 	/**	 
@@ -32,61 +28,32 @@ public class TypeCounter {
 		cu.accept(new ASTVisitor() {	 
 
 			// COUNT ANNOTATION DECLARATIONS
-			public boolean visit(AnnotationTypeDeclaration node) {			
-//				String nodeAsString = node.toString();
-//				if ( nodeAsString.contains("interface "+ targetType) )	
-//					decCount++;																		
+			public boolean visit(AnnotationTypeDeclaration node) {	
+
+				addVisitDec(node);
+
 				return true;
 			}
 
 			// COUNT ENUMERATION DECLARATIONS
-			public boolean visit(EnumDeclaration node) {												
-//				String nodeAsString = node.toString();
-//				System.out.println(nodeAsString);
-//				if (nodeAsString.contains("enum "+ targetType)) 		
-//
-//					decCount++;																	
+			public boolean visit(EnumDeclaration node) {	
+
+				addVisitDec(node);
+
 				return true;
 			}
 
 			// COUNT CLASS AND INTERFACE DECLARATIONS
 			public boolean visit(TypeDeclaration node) {
-				
-				if ( (types.isEmpty()) ){
 
-					types.add(new TargetType(node.resolveBinding().getQualifiedName(),0,1));
+				addVisitDec(node);
 
-				}else {
-					if ( !(types.isEmpty()) ) {
-
-						TargetType repeat = null;
-						boolean first = true;
-
-						ArrayList<String> typeNames = new ArrayList<String>();
-
-						for (TargetType s: types) {
-
-							typeNames.add(s.getType());
-							if (typeNames.contains((node.resolveBinding().getQualifiedName())) && first){
-								repeat = s;
-								first = false;
-							}
-						}
-
-						if (repeat != null) {
-							repeat.addDec();
-						}
-						if (!(typeNames.contains(node.resolveBinding().getQualifiedName()))) {
-							types.add(new TargetType(node.resolveBinding().getQualifiedName(), 0, 1));
-						}
-					}
-				}
-														
 				return true;
 			}
 		});
 		return types;
 	}
+
 
 	/**	 
 	 **	 Parameters: The starting node of the syntax tree, the type that the user is looking to count
@@ -99,12 +66,10 @@ public class TypeCounter {
 
 			// COUNT NORMAL ANNOTATION TYPE REFERENCES 
 			public boolean visit (NormalAnnotation node) {
+
 				try {
-					//				if (!(types.contains(node.resolveTypeBinding().getQualifiedName()))){
-					//					types.add(node.resolveTypeBinding().getQualifiedName());
-					//				}
-//					if ( node.resolveTypeBinding().getQualifiedName().equals(targetType) )
-//						refCount++;
+					addVisitDec(node);
+
 				}catch (Exception e) {
 				}
 				return false;
@@ -112,11 +77,9 @@ public class TypeCounter {
 
 			// COUNT MARKER ANNOTATION TYPE REFERENCES 
 			public boolean visit (MarkerAnnotation node) {
-				//				if (!(types.contains(node.resolveTypeBinding().getQualifiedName()))){
-				//					types.add(node.resolveTypeBinding().getQualifiedName());
-				//				}
-//				if ( node.resolveTypeBinding().getQualifiedName().equals(targetType) )
-//					refCount++;
+
+				addVisitRef(node);
+
 				return true;
 			}
 
@@ -142,18 +105,24 @@ public class TypeCounter {
 	}
 
 
-	private String getFullName(Type node) {
-		return node.resolveBinding().getQualifiedName();
 
+	// Return fully qualified name of the java type
+	private String getFullName(MarkerAnnotation node) {
+		return node.resolveTypeBinding().getQualifiedName();
 	}
 
-	private void addVisitRef(Type node) {
-		if ((types.isEmpty()) && (!(getFullName(node).equals("void")))){
+	/**
+	 ** Parameters: MarkerAnnotation Node type. 
+	 ** Adds the type to a list. Search for this node type and increment the references
+	 ** Updates the list. 
+	 **/
+	private void addVisitRef(MarkerAnnotation node) {
+		if ( (types.isEmpty()) && (!(getFullName(node).equals("void"))) ){
 
 			types.add(new TargetType(getFullName(node),1,0));
 
 		}else {
-			if (!(types.isEmpty())) {
+			if ( !(types.isEmpty()) ) {
 
 				TargetType repeat = null;
 				boolean first = true;
@@ -163,54 +132,227 @@ public class TypeCounter {
 				for (TargetType s: types) {
 
 					typeNames.add(s.getType());
-					if (typeNames.contains((getFullName(node))) && first){
+					if ( typeNames.contains((getFullName(node))) && first ){
+						repeat = s;
+						first = false;
+					}
+				}
+
+				if ( repeat != null ) {
+					repeat.addRef();
+				}
+				if ( !(getFullName(node).equals("void")) && !(typeNames.contains(getFullName(node))) ) {
+					types.add(new TargetType(getFullName(node), 1, 0));
+				}
+			}
+		}
+
+	}
+
+	// Return fully qualified name of the java type
+	private String getFullName(Type node) {
+		return node.resolveBinding().getQualifiedName();
+
+	}
+
+	/**
+	 ** Parameters: To search for SimpleType and PrimitiveType
+	 ** Adds the type to a list. Search for this node type and increment the references
+	 ** Updates the list. 
+	 **/
+	private void addVisitRef(Type node) {
+
+		if ( (types.isEmpty()) && (!(getFullName(node).equals("void"))) ){
+
+			types.add(new TargetType(getFullName(node),1,0));
+
+		}else {
+			if ( !(types.isEmpty()) ) {
+
+				TargetType repeat = null;
+				boolean first = true;
+
+				ArrayList<String> typeNames = new ArrayList<String>();
+
+				for (TargetType s: types) {
+
+					typeNames.add(s.getType());
+					if ( typeNames.contains((getFullName(node))) && first ){
+						repeat = s;
+						first = false;
+					}
+				}
+
+				if ( repeat != null ) {
+					repeat.addRef();
+				}
+				if ( !(getFullName(node).equals("void")) && !(typeNames.contains(getFullName(node))) ) {
+					types.add(new TargetType(getFullName(node), 1, 0));
+				}
+			}
+		}
+	}
+
+	/**
+	 ** Parameters: TypeDeclaration Node type. 
+	 ** Adds the type to a list. Search for this node type and increment the Declarations
+	 ** Updates the list. 
+	 **/
+	private void addVisitDec(TypeDeclaration node){
+
+		if ( (types.isEmpty()) ){
+
+			types.add(new TargetType(node.resolveBinding().getQualifiedName(),0,1));
+
+		}else {
+			if ( !(types.isEmpty()) ) {
+
+				TargetType repeat = null;
+				boolean first = true;
+
+				ArrayList<String> typeNames = new ArrayList<String>();
+
+				for (TargetType s: types) {
+
+					typeNames.add(s.getType());
+					if ( typeNames.contains((node.resolveBinding().getQualifiedName())) && first ){
 						repeat = s;
 						first = false;
 					}
 				}
 
 				if (repeat != null) {
-					repeat.addRef();
+					repeat.addDec();
 				}
-				if (!(getFullName(node).equals("void")) && !(typeNames.contains(getFullName(node)))) {
-					types.add(new TargetType(getFullName(node), 1, 0));
+				if (!(typeNames.contains(node.resolveBinding().getQualifiedName()))) {
+					types.add(new TargetType(node.resolveBinding().getQualifiedName(), 0, 1));
 				}
 			}
 		}
 	}
-	
-//	private void addVisitDec(Type node) {
-//		if ((types.isEmpty()) && (!(getFullName(node).equals("void")))){
-//
-//			types.add(new TargetType(getFullName(node),0,1));
-//
-//		}else {
-//			if (!(types.isEmpty())) {
-//
-//				TargetType repeat = null;
-//				boolean first = true;
-//
-//				ArrayList<String> typeNames = new ArrayList<String>();
-//
-//				for (TargetType s: types) {
-//
-//					typeNames.add(s.getType());
-//					if (typeNames.contains((getFullName(node))) && first){
-//						repeat = s;
-//						first = false;
-//					}
-//				}
-//
-//				if (repeat != null) {
-//					repeat.addRef();
-//				}
-//				if (!(getFullName(node).equals("void")) && !(typeNames.contains(getFullName(node)))) {
-//					types.add(new TargetType(getFullName(node), 0, 1));
-//				}
-//			}
-//		}
-//	}
-	
+
+	/**
+	 ** Parameters: EnumDeclaration Node type. 
+	 ** Adds the type to a list. Search for this node type and increment the declarations
+	 ** Updates the list. 
+	 **/
+	private void addVisitDec(EnumDeclaration node) {
+
+		if ( (types.isEmpty()) ){
+
+			types.add(new TargetType(node.resolveBinding().getQualifiedName(),0,1));
+
+		}else {
+			if ( !(types.isEmpty()) ) {
+
+				TargetType repeat = null;
+				boolean first = true;
+
+				ArrayList<String> typeNames = new ArrayList<String>();
+
+				for (TargetType s: types) {
+
+					typeNames.add(s.getType());
+					if ( typeNames.contains((node.resolveBinding().getQualifiedName())) && first ){
+						repeat = s;
+						first = false;
+					}
+				}
+
+				if (repeat != null) {
+					repeat.addDec();
+				}
+				if (!(typeNames.contains(node.resolveBinding().getQualifiedName()))) {
+					types.add(new TargetType(node.resolveBinding().getQualifiedName(), 0, 1));
+				}
+			}
+		}
+
+	}
+
+	/**
+	 ** Parameters: AnnotationTypeDeclaration Node type. 
+	 ** Adds the type to a list. Search for this node type and increment the declarations
+	 ** Updates the list. 
+	 **/
+	private void addVisitDec(AnnotationTypeDeclaration node) {
+
+		if ( (types.isEmpty()) ){
+
+			types.add(new TargetType(node.resolveBinding().getQualifiedName(),0,1));
+
+		}else {
+			if ( !(types.isEmpty()) ) {
+
+				TargetType repeat = null;
+				boolean first = true;
+
+				ArrayList<String> typeNames = new ArrayList<String>();
+
+				for (TargetType s: types) {
+
+					typeNames.add(s.getType());
+					if ( typeNames.contains((node.resolveBinding().getQualifiedName())) && first ){
+						repeat = s;
+						first = false;
+					}
+				}
+
+				if (repeat != null) {
+					repeat.addDec();
+				}
+				if (!(typeNames.contains(node.resolveBinding().getQualifiedName()))) {
+					types.add(new TargetType(node.resolveBinding().getQualifiedName(), 0, 1));
+				}
+			}
+		}
+
+	}
+
+	/**
+	 ** Parameters: NormalAnnotation Node type. 
+	 ** Adds the type to a list. Search for this node type and increment the declarations
+	 ** Updates the list. 
+	 **/
+	protected void addVisitDec(NormalAnnotation node) {
+
+		if ( (types.isEmpty()) ){
+
+			types.add(new TargetType(node.resolveTypeBinding().getQualifiedName(),0,1));
+
+		}else {
+			if ( !(types.isEmpty()) ) {
+
+				TargetType repeat = null;
+				boolean first = true;
+
+				ArrayList<String> typeNames = new ArrayList<String>();
+
+				for (TargetType s: types) {
+
+					typeNames.add(s.getType());
+					if ( typeNames.contains((node.resolveTypeBinding().getQualifiedName())) && first ){
+						repeat = s;
+						first = false;
+					}
+				}
+
+				if (repeat != null) {
+					repeat.addDec();
+				}
+				if (!(typeNames.contains(node.resolveTypeBinding().getQualifiedName()))) {
+					types.add(new TargetType(node.resolveTypeBinding().getQualifiedName(), 0, 1));
+				}
+			}
+		}
+
+	}
+
+	/**	 
+	 **	 Parameters: The starting node of the syntax tree, the type that the user is looking to count
+	 **	 Count all references to the target type
+	 **	 Return: The arrayList containing all types. 
+	 **/
 	public ArrayList<TargetType> count(ASTNode cu) {
 		countRef(cu);
 		countDec(cu);
