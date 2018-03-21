@@ -7,7 +7,7 @@ public class UserContact {
 
 	//Ask the user for the pathname (command line)
 	public String getPathname() {
-		System.out.print("Please enter the directory pathname: ");
+		System.out.print("Please enter the directory name: ");
 		Scanner keyboard = new Scanner(System.in);			
 		String pathname = keyboard.nextLine();							
 		return pathname;
