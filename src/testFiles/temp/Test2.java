@@ -1,4 +1,4 @@
-@Test(expected = FooBarException.class)
-public class B{
-
-}
+// @Test(expected = FooBarException.class)
+// public class Test2{
+//
+// }

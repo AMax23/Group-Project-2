@@ -1,7 +1,7 @@
-public class Test4{
+public class Test5{
 
   void method1 (String x){
-    
+
   }
 
 }
