@@ -1,7 +1,6 @@
 package project1;
 
 import java.util.ArrayList;
-
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
@@ -11,6 +10,7 @@ import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 
 public class TypeCounter {
@@ -18,11 +18,14 @@ public class TypeCounter {
 
 	// Contains objects of type TargetType which keeps track of all the references and declarations count.
 	ArrayList<TargetType> types = new ArrayList<TargetType>();
+	
+	// List to keep track of all the variable declarations 
+	ArrayList<TargetType> types2 = new ArrayList<TargetType>();
 
 	/**	 
 	 **	 Parameters: The starting node of the syntax tree, the type that the user is looking to count
 	 **	 Count all Annotation, Enumeration, Interface, and Class declarations of the target type.
-	 **	 Return: The integer decCount.
+	 **	 Return: The the ArrayList containing all the types.
 	 **/
 	private ArrayList<TargetType> countDec(ASTNode cu) {
 		cu.accept(new ASTVisitor() {	 
@@ -50,8 +53,29 @@ public class TypeCounter {
 
 				return true;
 			}
+			
+			
 		});
 		return types;
+	}
+	
+	/**	 
+	 **	 Parameters: The starting node of the syntax tree, the type that the user is looking to count
+	 **	 Count non-primitive variable declarations.
+	 **	 Return: the ArrayList.
+	 **/
+	public ArrayList<TargetType> countVarDec(ASTNode cu) {
+		cu.accept(new ASTVisitor() {	 
+			
+			public boolean visit (VariableDeclarationFragment node) {
+
+				addVisitDec(node);
+
+				return true;
+			}
+			
+		});
+		return types2;
 	}
 
 
@@ -91,6 +115,7 @@ public class TypeCounter {
 				return true;
 			}
 
+
 			// COUNT ALL OTHER TYPE REFERENCES 
 			public boolean visit(SimpleType node) {
 
@@ -103,7 +128,6 @@ public class TypeCounter {
 
 		return types;
 	}
-
 
 
 	// Return fully qualified name of the java type
@@ -191,6 +215,49 @@ public class TypeCounter {
 				}
 			}
 		}
+	}
+
+	/**
+	 ** Parameters: VariableDeclarationFragment Node type. 
+	 **	Only counts non-primitives. 
+	 ** Adds the type to a list. Search for this node type and increment the Declarations
+	 ** Updates the list. 
+	 **/
+	private void addVisitDec(VariableDeclarationFragment node) {
+		
+		if (!node.resolveBinding().getType().isPrimitive()) {
+
+			if ( (types2.isEmpty()) ){
+
+				types2.add(new TargetType(node.resolveBinding().getVariableDeclaration().getName(),0,1));
+
+			}else {
+				if ( !(types2.isEmpty()) ) {
+
+					TargetType repeat = null;
+					boolean first = true;
+
+					ArrayList<String> typeNames = new ArrayList<String>();
+
+					for (TargetType s: types2) {
+
+						typeNames.add(s.getType());
+						if ( typeNames.contains((node.resolveBinding().getVariableDeclaration().getName())) && first ){
+							repeat = s;
+							first = false;
+						}
+					}
+
+					if (repeat != null) {
+						repeat.addDec();
+					}
+					if (!(typeNames.contains(node.resolveBinding().getVariableDeclaration().getName()))) {
+						types2.add(new TargetType(node.resolveBinding().getVariableDeclaration().getName(), 0, 1));
+					}
+				}
+			}
+		}
+
 	}
 
 	/**
