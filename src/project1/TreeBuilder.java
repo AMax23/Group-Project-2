@@ -28,7 +28,7 @@ public class TreeBuilder {
  **	 Parameters: The pathname of the users directory which contains code to parse.
  **  Convert the contents of all java files in the directory to one string.
  **	 Return: The string of code from the directory.
- * @param counter 
+ * @param counter
  **/
 	public TypeCounter filesToString(String pathname, TypeCounter counter, String[] classpath, String[] sources ) throws IOException, FileNotFoundException {
 
@@ -42,7 +42,7 @@ public class TreeBuilder {
 		for (File f : allFiles) {
 			String fileName = f.getName().toLowerCase();
 			// If is directory, parse files within it recursively
-			
+			System.out.println(f);
 			if	(f.isDirectory()){
 				StringBuilder sb = new StringBuilder();
 				sb.append(filesToString(f.getAbsolutePath(),counter, classpath, sources));
@@ -54,16 +54,22 @@ public class TreeBuilder {
 			}
 			// If is java file, read file and append to StringBuilder
 			if (f.isFile() && fileName.endsWith(".java")) {
-				StringBuilder sb = new StringBuilder();
-				sb = readJavaFile(f,sb);
-				String javaCode = sb.toString();
-				ASTNode cu = makeSyntaxTree(javaCode.toCharArray(), classpath, sources, javaCode);
-				counter.count(cu);
-				counter.countVarDec(cu);
+				counter = countTree(counter, f, classpath, sources);
+
 			}
 		}
 		return counter;
 	}
+
+	public TypeCounter countTree(TypeCounter counter, File f, String[] classpath, String[] sources) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		sb = readJavaFile(f,sb);
+		String javaCode = sb.toString();
+		ASTNode cu = makeSyntaxTree(javaCode.toCharArray(), classpath, sources, javaCode);
+		counter.count(cu);
+		counter.countVarDec(cu);
+		return counter;
+		}
 
 	/**
 	 **	 Reads through Java file and adds each line into StringBuilder object
@@ -88,7 +94,9 @@ public class TreeBuilder {
 	 **	 Runs through elements in Jar file and will read any Java files into the StringBuilder object
 	 **/
 	public TypeCounter parseJar(File jarFile, String dirPath, StringBuilder sb, TypeCounter counter,
-			String[] classpath, String[] sources) throws IOException {
+		String[] classpath, String[] sources) throws IOException {
+		System.out.println("do I work");
+
 		// Create JarFile object and check for entries
 		JarFile jFile = new JarFile(jarFile);
 		Enumeration<JarEntry> jEntries = jFile.entries();
@@ -99,17 +107,22 @@ public class TreeBuilder {
 			// Find java files to read into StringBuilder
 			ZipEntry jarElem = jEntries.nextElement();
 			String jarName = jarElem.getName();
+
+			if (jarName.endsWith(".jar")) {
+				File directory = new File(dirPath+jarName);
+				parseJar(directory,dirPath+jarName,sb,counter,classpath,sources);
+			}
 			if (jarName.endsWith(".java")) {
 				// Take slash out if exists in jarName
 //				if (jarName.contains("/")) {
 //					jarName = jarName.split("/")[1];
 //				}
-				
+
 				// Convert jar entry into java file
 				int fileVersion = 1;
 				boolean createFile = true;
 				String javaFilePath = null;
-				
+
 				while(createFile) {
 					try {
 						if (jarName.contains(".java")) {
@@ -118,7 +131,7 @@ public class TreeBuilder {
 							javaFilePath = dirPath + "temp.java";
 						}
 						InputStream input = jFile.getInputStream(jarElem);
-						
+
 						Files.copy(input, Paths.get(javaFilePath));
 						createFile = false;
 					} catch (FileAlreadyExistsException faee) {
@@ -129,12 +142,18 @@ public class TreeBuilder {
 				// Read file
 				if (javaFilePath != null) {
 					File javaFile = new File(javaFilePath);
+
+
+					counter = countTree(counter, javaFile, classpath, sources);
+					/*
 					sb = readJavaFile(javaFile,sb);
 					String javaCode = sb.toString();
 					ASTNode cu = makeSyntaxTree(javaCode.toCharArray(), classpath, sources, javaCode);
 					counter.count(cu);
 					counter.countVarDec(cu);
 					javaFile.delete();
+
+					*/
 				}
 			}
 		}
