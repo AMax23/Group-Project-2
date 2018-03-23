@@ -5,6 +5,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.SimpleType;
@@ -81,6 +82,12 @@ public class TypeCounter {
 	private ArrayList<TargetType> countRef(ASTNode cu)
 	{
 		cu.accept(new ASTVisitor() {	
+			
+			// Count import declaration type reference.
+			public boolean visit (ImportDeclaration node) {
+				addVisitRef(node);
+				return true;
+			}
 
 			// COUNT NORMAL ANNOTATION TYPE REFERENCES 
 			public boolean visit (NormalAnnotation node) {
@@ -238,6 +245,44 @@ public class TypeCounter {
 			}
 		}
 
+	}
+	
+	/**
+	 ** Parameters: Search for import declarations.
+	 ** Adds the type to a list and increments the references to this type in the TargetType class
+	 */
+	private void addVisitRef(ImportDeclaration node) {
+		
+		if ( (types.isEmpty()) && (!(node.getName().toString().equals("void"))) ){
+
+			types.add(new TargetType(node.getName().toString(),1,0));
+
+		}else {
+			if ( !(types.isEmpty()) ) {
+
+				TargetType repeat = null;
+				boolean first = true;
+
+				ArrayList<String> typeNames = new ArrayList<String>();
+
+				for (TargetType s: types) {
+
+					typeNames.add(s.getType());
+					if ( typeNames.contains(node.getName().toString()) && first ){
+						repeat = s;
+						first = false;
+					}
+				}
+
+				if ( repeat != null ) {
+					repeat.addRef();
+				}
+				if ( !(node.getName().toString().equals("void")) && !(typeNames.contains(node.getName().toString())) ) {
+					types.add(new TargetType(node.getName().toString(), 1, 0));
+				}
+			}
+		}
+		
 	}
 
 	/**
