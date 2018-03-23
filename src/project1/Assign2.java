@@ -11,50 +11,35 @@ public class Assign2 {
 
 		/** ENTER TARGET DIRECTORY, TARGET TYPE, AND SOURCE DIRECTORY MANUALLY
 		 	Uncomment the following and enter the specified strings: **/
-//		String pathname = "/Users/ahmed/Downloads/testFiles/";						// AHMED
-//		String [] sources = {"/Users/ahmed/Downloads/jar"};															// AHMED
-//		String targetType = "enum";
-
-//		String pathname = "<ENTER TARGET DIRECTORY HERE>";
-//		String targetType = "<ENTER TYPE HERE>";
-//		String [] sources = {"<ENTER JAR FILES DIRECTORY HERE>"};
-
-//		String BASEDIR = "C:\\Users\\jicka_000\\eclipse-workspace\\Group-Project-2\\src\\";
+		String BASEDIR = "C:\\Users\\jicka_000\\eclipse-workspace\\Group-Project-2\\src\\";
+		
 		String folderName = args[0];
-		String BASEDIR = "/Users/ahmed/eclipse-workspace/team2/src/";
 
 		/** USER INPUT **/
+		// Get pathname from console argument (!!! FOR QUICK TESTING use this instead of user input !!!)
+//		String pathname = BASEDIR + folderName;
+		
+		// Get pathname from user input
 		UserContact uc = new UserContact();
-//		String pathname = BASEDIR + uc.getPathname();		
-		String pathname = BASEDIR + folderName;
-
+		String pathname = BASEDIR + uc.getPathname();		
+		
 		// Make sure that the user enters a valid directory
-//		while (!uc.isValidDir(pathname)) {
-//			pathname = BASEDIR + uc.getPathname();
-//		}
-
-		String [] sources = {pathname};															// Ask user for the directory containing their jar files
-
-		// Make sure that the user enters a valid directory for sources
-//		while (!uc.isValidDir(sources[0])) {
-//			sources = uc.getJarFiles();
-//		}
+		while (!uc.isValidDir(pathname)) {
+			pathname = BASEDIR + uc.getPathname();
+		}
+		
+		// Initiate objects to parse and count files
 		TypeCounter counter = new TypeCounter();
-		
 		TreeBuilder builder = new TreeBuilder();
-		String [] classpath = {pathname};																// Where the files are located
-		TypeCounter sourceString = builder.filesToString(pathname,counter, classpath, sources);											// Put contents of directory into one string
-//		ASTNode cu = builder.makeSyntaxTree(sourceString.toCharArray(), classpath, sources, sourceString); // Build syntax tree from the string file content
+		String [] sources = {pathname};		
+		String [] classpath = {pathname};														// Where the files are located
+		counter = builder.parseDir(pathname,counter, classpath, sources);					// Put contents of directory into one string
 
+		// Get final lists after counting complete
+		ArrayList<TargetType> types = counter.getList();
+		ArrayList<TargetType> varDec = counter.getList2();
 		
-
-		
-
-		ArrayList<TargetType> types = sourceString.getList();
-		ArrayList<TargetType> varDec = sourceString.getList2();
-		
-//		sourceString.getList()
-
+		// Print out all values in each list
 		for (TargetType s: types) {
 			System.out.printf("\nType: %-25s  Declarations found: %-5d References found: %-2d\n",s.getType(),s.getDec(), s.getRef());
 		}

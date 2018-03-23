@@ -22,13 +22,8 @@ public class TypeCounter {
 	// List to keep track of all the variable declarations 
 	ArrayList<TargetType> types2 = new ArrayList<TargetType>();
 	
-	public ArrayList<TargetType> getList(){
-		return types;
-	}
-	
-	public ArrayList<TargetType> getList2(){
-		return types2;
-	}
+	public ArrayList<TargetType> getList(){ return types; }
+	public ArrayList<TargetType> getList2(){ return types2; }
 
 	/**	 
 	 **	 Parameters: The starting node of the syntax tree, the type that the user is looking to count
@@ -40,28 +35,21 @@ public class TypeCounter {
 
 			// COUNT ANNOTATION DECLARATIONS
 			public boolean visit(AnnotationTypeDeclaration node) {	
-
 				addVisitDec(node);
-
 				return true;
 			}
 
 			// COUNT ENUMERATION DECLARATIONS
 			public boolean visit(EnumDeclaration node) {	
-
 				addVisitDec(node);
-
 				return true;
 			}
 
 			// COUNT CLASS AND INTERFACE DECLARATIONS
 			public boolean visit(TypeDeclaration node) {
-
 				addVisitDec(node);
-
 				return true;
 			}
-			
 			
 		});
 		return types;
@@ -76,9 +64,7 @@ public class TypeCounter {
 		cu.accept(new ASTVisitor() {	 
 			
 			public boolean visit (VariableDeclarationFragment node) {
-
 				addVisitDec(node);
-
 				return true;
 			}
 			
@@ -98,41 +84,33 @@ public class TypeCounter {
 
 			// COUNT NORMAL ANNOTATION TYPE REFERENCES 
 			public boolean visit (NormalAnnotation node) {
-
 				try {
 					addVisitDec(node);
-
 				}catch (Exception e) {
+					System.out.println("Error visiting NormalAnnotation node");
 				}
 				return false;
 			}
 
 			// COUNT MARKER ANNOTATION TYPE REFERENCES 
 			public boolean visit (MarkerAnnotation node) {
-
 				addVisitRef(node);
-
 				return true;
 			}
 
 			// COUNT PRIMITIVE TYPE REFERENCES 
 			public boolean visit(PrimitiveType node) {
-
 				addVisitRef(node);
-
 				return true;
 			}
 
 
 			// COUNT ALL OTHER TYPE REFERENCES 
 			public boolean visit(SimpleType node) {
-
 				addVisitRef(node);
-
 				return true;
 			}
 		});
-
 
 		return types;
 	}
@@ -150,9 +128,7 @@ public class TypeCounter {
 	 **/
 	private void addVisitRef(MarkerAnnotation node) {
 		if ( (types.isEmpty()) && (!(getFullName(node).equals("void"))) ){
-
 			types.add(new TargetType(getFullName(node),1,0));
-
 		}else {
 			if ( !(types.isEmpty()) ) {
 
@@ -181,11 +157,7 @@ public class TypeCounter {
 
 	}
 
-	// Return fully qualified name of the java type
-	private String getFullName(Type node) {
-		return node.resolveBinding().getQualifiedName();
-
-	}
+	
 
 	/**
 	 ** Parameters: To search for SimpleType and PrimitiveType
@@ -432,6 +404,12 @@ public class TypeCounter {
 		countRef(cu);
 		countDec(cu);
 		return types;
+	}
+	
+	// Return fully qualified name of the java type
+	private String getFullName(Type node) {
+		return node.resolveBinding().getQualifiedName();
+
 	}
 	
 
