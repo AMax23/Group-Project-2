@@ -19,29 +19,29 @@ public class TypeCounter {
 
 	// Contains objects of type TargetType which keeps track of all the references and declarations count.
 	ArrayList<TargetType> types = new ArrayList<TargetType>();
-	
-	// List to keep track of all the variable declarations 
+
+	// List to keep track of all the variable declarations
 	ArrayList<TargetType> types2 = new ArrayList<TargetType>();
-	
+
 	public ArrayList<TargetType> getList(){ return types; }
 	public ArrayList<TargetType> getList2(){ return types2; }
 
-	/**	 
+	/**
 	 **	 Parameters: The starting node of the syntax tree, the type that the user is looking to count
 	 **	 Count all Annotation, Enumeration, Interface, and Class declarations of the target type.
 	 **	 Return: The the ArrayList containing all the types.
 	 **/
 	private ArrayList<TargetType> countDec(ASTNode cu) {
-		cu.accept(new ASTVisitor() {	 
+		cu.accept(new ASTVisitor() {
 
 			// COUNT ANNOTATION DECLARATIONS
-			public boolean visit(AnnotationTypeDeclaration node) {	
+			public boolean visit(AnnotationTypeDeclaration node) {
 				addVisitDec(node);
 				return true;
 			}
 
 			// COUNT ENUMERATION DECLARATIONS
-			public boolean visit(EnumDeclaration node) {	
+			public boolean visit(EnumDeclaration node) {
 				addVisitDec(node);
 				return true;
 			}
@@ -51,45 +51,45 @@ public class TypeCounter {
 				addVisitDec(node);
 				return true;
 			}
-			
+
 		});
 		return types;
 	}
-	
-	/**	 
+
+	/**
 	 **	 Parameters: The starting node of the syntax tree, the type that the user is looking to count
 	 **	 Count non-primitive variable declarations.
 	 **	 Return: the ArrayList.
 	 **/
 	public ArrayList<TargetType> countVarDec(ASTNode cu) {
-		cu.accept(new ASTVisitor() {	 
-			
+		cu.accept(new ASTVisitor() {
+
 			public boolean visit (VariableDeclarationFragment node) {
 				addVisitDec(node);
 				return true;
 			}
-			
+
 		});
 		return types2;
 	}
 
 
-	/**	 
+	/**
 	 **	 Parameters: The starting node of the syntax tree, the type that the user is looking to count
 	 **	 Count all references to the target type
 	 **	 Return: The integer refCount.
 	 **/
 	private ArrayList<TargetType> countRef(ASTNode cu)
 	{
-		cu.accept(new ASTVisitor() {	
-			
+		cu.accept(new ASTVisitor() {
+
 			// Count import declaration type reference.
 			public boolean visit (ImportDeclaration node) {
 				addVisitRef(node);
 				return true;
 			}
 
-			// COUNT NORMAL ANNOTATION TYPE REFERENCES 
+			// COUNT NORMAL ANNOTATION TYPE REFERENCES
 			public boolean visit (NormalAnnotation node) {
 				try {
 					addVisitDec(node);
@@ -99,20 +99,20 @@ public class TypeCounter {
 				return false;
 			}
 
-			// COUNT MARKER ANNOTATION TYPE REFERENCES 
+			// COUNT MARKER ANNOTATION TYPE REFERENCES
 			public boolean visit (MarkerAnnotation node) {
 				addVisitRef(node);
 				return true;
 			}
 
-			// COUNT PRIMITIVE TYPE REFERENCES 
+			// COUNT PRIMITIVE TYPE REFERENCES
 			public boolean visit(PrimitiveType node) {
 				addVisitRef(node);
 				return true;
 			}
 
 
-			// COUNT ALL OTHER TYPE REFERENCES 
+			// COUNT ALL OTHER TYPE REFERENCES
 			public boolean visit(SimpleType node) {
 				addVisitRef(node);
 				return true;
@@ -129,9 +129,9 @@ public class TypeCounter {
 	}
 
 	/**
-	 ** Parameters: MarkerAnnotation Node type. 
+	 ** Parameters: MarkerAnnotation Node type.
 	 ** Adds the type to a list. Search for this node type and increment the references
-	 ** Updates the list. 
+	 ** Updates the list.
 	 **/
 	private void addVisitRef(MarkerAnnotation node) {
 		if ( (types.isEmpty()) && (!(getFullName(node).equals("void"))) ){
@@ -164,12 +164,12 @@ public class TypeCounter {
 
 	}
 
-	
+
 
 	/**
 	 ** Parameters: To search for SimpleType and PrimitiveType
 	 ** Adds the type to a list. Search for this node type and increment the references
-	 ** Updates the list. 
+	 ** Updates the list.
 	 **/
 	private void addVisitRef(Type node) {
 
@@ -205,13 +205,13 @@ public class TypeCounter {
 	}
 
 	/**
-	 ** Parameters: VariableDeclarationFragment Node type. 
-	 **	Only counts non-primitives. 
+	 ** Parameters: VariableDeclarationFragment Node type.
+	 **	Only counts non-primitives.
 	 ** Adds the type to a list. Search for this node type and increment the Declarations
-	 ** Updates the list. 
+	 ** Updates the list.
 	 **/
 	private void addVisitDec(VariableDeclarationFragment node) {
-		
+
 		if (!node.resolveBinding().getType().isPrimitive() && !node.resolveBinding().getType().getName().equals("String")) {
 
 			if ( (types2.isEmpty()) ){
@@ -246,13 +246,13 @@ public class TypeCounter {
 		}
 
 	}
-	
+
 	/**
 	 ** Parameters: Search for import declarations.
 	 ** Adds the type to a list and increments the references to this type in the TargetType class
 	 */
 	private void addVisitRef(ImportDeclaration node) {
-		
+
 		if ( (types.isEmpty()) && (!(node.getName().toString().equals("void"))) ){
 
 			types.add(new TargetType(node.getName().toString(),1,0));
@@ -282,19 +282,27 @@ public class TypeCounter {
 				}
 			}
 		}
-		
+
 	}
 
 	/**
-	 ** Parameters: TypeDeclaration Node type. 
+	 ** Parameters: TypeDeclaration Node type.
 	 ** Adds the type to a list. Search for this node type and increment the Declarations
-	 ** Updates the list. 
+	 ** Updates the list.
 	 **/
 	private void addVisitDec(TypeDeclaration node){
 
 		if ( (types.isEmpty()) ){
 
-			types.add(new TargetType(node.resolveBinding().getQualifiedName(),0,1));
+			String temp = node.resolveBinding().getQualifiedName();
+
+
+
+			if (!temp.equals("")) {
+				types.add(new TargetType(node.resolveBinding().getQualifiedName(),0,1));
+			}else {
+				types.add(new TargetType(node.getName().toString(),0,1));
+			}
 
 		}else {
 			if ( !(types.isEmpty()) ) {
@@ -316,17 +324,21 @@ public class TypeCounter {
 				if (repeat != null) {
 					repeat.addDec();
 				}
-				if (!(typeNames.contains(node.resolveBinding().getQualifiedName()))) {
+
+				String temp = node.resolveBinding().getQualifiedName();
+				if (!typeNames.contains(node.resolveBinding().getQualifiedName()) && !temp.equals("")) {
 					types.add(new TargetType(node.resolveBinding().getQualifiedName(), 0, 1));
+				}else if ( !typeNames.contains(node.resolveBinding().getQualifiedName()) && temp.equals("") ) {
+					types.add(new TargetType(node.getName().toString(), 0, 1));
 				}
 			}
 		}
 	}
 
 	/**
-	 ** Parameters: EnumDeclaration Node type. 
+	 ** Parameters: EnumDeclaration Node type.
 	 ** Adds the type to a list. Search for this node type and increment the declarations
-	 ** Updates the list. 
+	 ** Updates the list.
 	 **/
 	private void addVisitDec(EnumDeclaration node) {
 
@@ -363,9 +375,9 @@ public class TypeCounter {
 	}
 
 	/**
-	 ** Parameters: AnnotationTypeDeclaration Node type. 
+	 ** Parameters: AnnotationTypeDeclaration Node type.
 	 ** Adds the type to a list. Search for this node type and increment the declarations
-	 ** Updates the list. 
+	 ** Updates the list.
 	 **/
 	private void addVisitDec(AnnotationTypeDeclaration node) {
 
@@ -402,9 +414,9 @@ public class TypeCounter {
 	}
 
 	/**
-	 ** Parameters: NormalAnnotation Node type. 
+	 ** Parameters: NormalAnnotation Node type.
 	 ** Adds the type to a list. Search for this node type and increment the declarations
-	 ** Updates the list. 
+	 ** Updates the list.
 	 **/
 	protected void addVisitDec(NormalAnnotation node) {
 
@@ -440,22 +452,22 @@ public class TypeCounter {
 
 	}
 
-	/**	 
+	/**
 	 **	 Parameters: The starting node of the syntax tree, the type that the user is looking to count
 	 **	 Count all references to the target type
-	 **	 Return: The arrayList containing all types. 
+	 **	 Return: The arrayList containing all types.
 	 **/
 	public ArrayList<TargetType> count(ASTNode cu) {
 		countRef(cu);
 		countDec(cu);
 		return types;
 	}
-	
+
 	// Return fully qualified name of the java type
 	private String getFullName(Type node) {
 		return node.resolveBinding().getQualifiedName();
 
 	}
-	
+
 
 }
