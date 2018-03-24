@@ -21,7 +21,7 @@ import project1.UserContact;
 public class TestAssign2 {
 	
 	// CHANGE THESE 2 ACCORDING TO YOUR COMPUTER 
-	private static String BASEDIR = "C:\\Users\\Masroor Hussain Syed\\Desktop\\UCalgary Courses\\Seng300\\Assignment\\Assign2\\src\\testFiles\\";
+	String BASEDIR = "C:\\Users\\jicka_000\\eclipse-workspace\\Group-Project-2\\src\\testFiles\\";
 		
     /*
      * Test a directory with no java files to parse.
@@ -156,7 +156,7 @@ public class TestAssign2 {
 		int refCount = 0;
 		
 		for (TargetType s: count) {
-			System.out.println(s.getType());
+//			System.out.println(s.getType());
 			if(s.getType().equals("A.colour")) {
 				refCount = s.getDec();
 			}
@@ -188,7 +188,7 @@ public class TestAssign2 {
 		
 		// Print out all values in each list
 		for (TargetType s: count) {
-			System.out.println(s.getType());
+//			System.out.println(s.getType());
 			if(s.getType().equals("A.colour")) {
 				refCount = s.getDec();
 			}
