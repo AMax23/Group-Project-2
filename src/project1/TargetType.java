@@ -12,7 +12,7 @@ public class TargetType {
 	
 	private int dec = 0;
 
-	TargetType(String type, int ref, int dec){
+	public TargetType(String type, int ref, int dec){
 		
 		this.type = type;
 		this.ref = ref;
